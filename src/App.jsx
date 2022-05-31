@@ -7,33 +7,52 @@ class GetGender extends React.Component {
   
   constructor(props) {
     super(props);
-    this.state = {value: 'Enter name...'};
-    this.gender = 'Result will show after sending name';
+    this.state = {
+      value: 'Enter name...',
+      gender: 'Result will show after sending name',
+      isEmptyInput: false,
+    };
 
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
+    this.handleBlur = this.handleBlur.bind(this);
 
+    this.serverUrl = 'https://api.genderize.io';
   }
 
   handleChange(event) {
     this.setState({value: event.target.value});
   }
 
+  handleBlur(event) {
+    this.setState({isEmptyInput: false});
+  }
+
   handleSubmit(event) {
-    event.preventDefault();    
-
-    const serverUrl = 'https://api.genderize.io';
-    const url = `${serverUrl}?name=` + this.state.value;
-    
-    const result = fetch(url)
-    .then(response => response.json())
-    .then(json => {
-      this.setState({value: json.gender});
-      return this.gender = json.gender;
-    });
-
+    event.preventDefault();
+    this.getGenderInfo();    
   }
   
+  getGenderInfo() {
+
+    const isEmptyInput = this.state.value.trim().length === 0;
+    const url = `${this.serverUrl}?name=` + this.state.value.trim(); 
+
+    if (isEmptyInput) {
+      this.setState({isEmptyInput: true});
+      return;
+    }
+
+    try {
+      const result = fetch(url)
+      .then(response => response.json())
+      .then(json => {
+        this.setState({gender: json.gender});
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
   render() {
     return (
@@ -43,7 +62,8 @@ class GetGender extends React.Component {
           className = "input"
           inputType = "text"
           placeholder = "type name..."
-          handleChange = {this.handleChange}  
+          handleChange = {this.handleChange}
+          handleBlur = {this.handleBlur}
         />
         <Button
           className = "button"
@@ -51,10 +71,34 @@ class GetGender extends React.Component {
           handleSubmit = {this.handleSubmit}
         />
       </form>
-      <Result gender = {this.gender} />
+      <ErrorMessage
+        errorCondition = {this.state.isEmptyInput}
+        errorMessage = "Input value can not be Empty"
+      />
+      <ErrorMessage
+        errorCondition = {this.state.value.length <= 2}
+        errorMessage = "Enter more than 2 symbols"
+      />
+      <Result 
+        gender = {this.state.gender}  
+      />
     </div>
     );
   }
+
+}
+
+function ErrorMessage(props) {
+
+  if (props.errorCondition) {
+    return (
+      <p className="error_message">
+        {props.errorMessage}
+    </p>
+    )
+  }
+
+  null;
 
 }
 
@@ -72,7 +116,7 @@ function Button(props){
 
 function TextInput(props){
   return (
-    <input className = {props.className} type = {props.inputType} placeholder = {props.placeholder} onChange = {props.handleChange} />
+    <input className = {props.className} type = {props.inputType} placeholder = {props.placeholder} value = {props.value} onChange = {props.handleChange} onBlur = {props.handleBlur} />
   );
 }
 
