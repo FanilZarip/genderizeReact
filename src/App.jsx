@@ -8,8 +8,9 @@ class GetGender extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      value: 'Enter name...',
-      gender: 'Result will show after sending name',
+      value: '',
+      firstName: '',
+      gender: '',
       isEmptyInput: false,
     };
 
@@ -47,7 +48,8 @@ class GetGender extends React.Component {
       const result = fetch(url)
       .then(response => response.json())
       .then(json => {
-        this.setState({gender: json.gender});
+        this.setState({gender: json.gender, firstName: json.name});
+        this.setState({value: ''})
       });
     } catch (error) {
       console.log(error);
@@ -64,6 +66,7 @@ class GetGender extends React.Component {
           placeholder = "type name..."
           handleChange = {this.handleChange}
           handleBlur = {this.handleBlur}
+          value = {this.state.value}
         />
         <Button
           className = "button"
@@ -73,15 +76,15 @@ class GetGender extends React.Component {
       </form>
       <ErrorMessage
         errorCondition = {this.state.isEmptyInput}
-        errorMessage = "Input value can not be Empty"
+        errorMessage = "Input's value can not be Empty"
       />
       <ErrorMessage
         errorCondition = {this.state.value.length <= 2}
         errorMessage = "Enter more than 2 symbols"
       />
-      <Result 
-        gender = {this.state.gender}  
-      />
+      <Result firstName = {this.state.firstName}>
+        Результат: {this.state.firstName} is {this.state.gender}
+      </Result>
     </div>
     );
   }
@@ -103,9 +106,21 @@ function ErrorMessage(props) {
 }
 
 function Result(props) {
+  
+  if (props.firstName === '') {
+    return (
+      <p className="result__Title">
+        Результат:  
+      </p>    
+    );
+  }
+
   return (
-    <p className="result__Title">Результат: {props.gender} </p>    
-  );
+    <p className="result__Title">
+        {props.children}  
+    </p>    
+  )
+
 }
 
 function Button(props){
